@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dasma Enki & Xhuli 💍</title>
+    <!-- Biblioteka për të konvertuar automatikisht fotot HEIC nga iPhone -->
+    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+    <style>
+        @font-face {
+            font-family: 'MeaCulpa-Regular';
+            src: url('fonts/MeaCulpa-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            min-height: 100vh;
+            color: #333; 
+            position: relative;
+            background: url('foto_sposi.jpg') no-repeat center center fixed;
+            background-size: cover;
+            overflow-x: hidden;
+        }
+
+        /* --- SCHERMATA DI BENVENUTO (OVERLAY) --- */
+        #welcome-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('foto_sposi.jpg') no-repeat center center;
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+
+        #welcome-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .welcome-bottom-fade {
+            width: 100%;
+            padding: 50px 20px 40px 20px;
+            background: linear-gradient(to top, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.7) 60%, rgba(255,255,255,0) 100%);
+            text-align: center;
+        }
+
+        .welcome-title {
+            font-family: 'MeaCulpa-Regular', 'Segoe UI', sans-serif;
+            font-size: 45px;
+            color: #111111;
+            margin: 0 0 10px 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .welcome-sub {
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .enter-btn {
+            background: #111111;
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .enter-btn:active {
+            transform: scale(0.96);
+            background: #333333;
+        }
+
+        /* --- ANIMAZIONE STELLINE NEL BACKGROUND --- */
+        .stars-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #fff, 0 0 12px #333333;
+            animation: sparkle linear infinite;
+        }
+
+        @keyframes sparkle {
+            0% { opacity: 0; transform: scale(0.3); }
+            50% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0; transform: scale(0.3); }
+        }
+
+        /* --- CONTENUTO PRINCIPALE CON SFOCATURA --- */
+        .main-container {
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card { 
+            background: rgba(255, 255, 255, 0.75); 
+            backdrop-filter: blur(0.5px);
+            -webkit-backdrop-filter: blur(12px);
+            width: 100%;
+            max-width: 500px; 
+            margin: 0 auto; 
+            padding: 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); 
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            text-align: center;
+        }
+
+        h2 { 
+            margin-top: 0; 
+            color: #111111; 
+            font-family: 'MeaCulpa-Regular', 'Segoe UI', sans-serif;
+            font-size: 45px;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+        }
+
+        .tabs { 
+            display: flex; 
+            justify-content: center; 
+            gap: 6px; 
+            margin-bottom: 20px; 
+        }
+
+        .tab-btn { 
+            flex: 1; 
+            padding: 10px 5px; 
+            border: none; 
+            background: rgba(238, 238, 238, 0.8); 
+            font-weight: bold; 
+            font-size: 13px;
+            border-radius: 10px; 
+            cursor: pointer; 
+            transition: all 0.3s;
+            color: #333;
+        }
+
+        .tab-btn.active { 
+            background: #111111; 
+            color: white; 
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-group { 
+            margin-bottom: 15px; 
+            text-align: left; 
+        }
+
+        label { 
+            font-size: 14px; 
+            font-weight: bold; 
+            display: block; 
+            margin-bottom: 5px; 
+            color: #444;
+        }
+
+        input[type="text"], textarea, input[type="file"] { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid rgba(200, 200, 200, 0.8); 
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px; 
+            font-size: 16px; 
+            box-sizing: border-box;
+        }
+
+        /* --- CATEGORIE A GRIGLIA (2 COLONNE) --- */
+        .category-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .category-card {
+            background: rgba(255, 255, 255, 0.85);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 12px 8px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #444;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.25s ease;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 52px;
+        }
+
+        .category-card.selected {
+            border-color: #111111;
+            background: #fff;
+            color: #111111;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+        }
+
+        button.submit-btn { 
+            width: 100%; 
+            padding: 15px; 
+            background: #f69393; 
+            color: white; 
+            border: none; 
+            font-size: 18px; 
+            font-weight: bold; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            margin-top: 15px; 
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+            transition: background 0.2s;
+        }
+
+        button.submit-btn:disabled { 
+            background: #ccc; 
+            box-shadow: none;
+        }
+
+        #statusMessage { 
+            margin-top: 15px; 
+            font-weight: bold; 
+        }
+
+        /* --- STILI PER LA GALLERIA --- */
+        .gallery-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .filter-popup-btn {
+            background: #111111;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #000;
+            aspect-ratio: 1 / 1;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .gallery-item img, .gallery-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gallery-author {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            font-size: 10px;
+            padding: 3px 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .dedica-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-left: 4px solid #111111;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .dedica-author {
+            font-weight: bold;
+            color: #111111;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .dedica-text {
+            font-size: 13px;
+            color: #333;
+            white-space: pre-wrap;
+        }
+
+        /* --- POP-UP MODAL PER I FILTRI --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-box {
+            background: white;
+            width: 90%;
+            max-width: 420px;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #111111;
+            margin-bottom: 15px;
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SCHERMATA BENVENUTO OVERLAY -->
+    <div id="welcome-overlay">
+        <div class="welcome-bottom-fade">
+            <h1 class="welcome-title">Mirë se erdhët në dasmën tonë!</h1>
+
+            <button class="enter-btn" onclick="enterSite()">Hyni në festë</button>
+        </div>
+    </div>
+
+    <!-- CONTENITORE STELLINE BACKGROUND -->
+    <div class="stars-container" id="starsContainer"></div>
+
+    <!-- CONTENUTO PRINCIPALE -->
+    <div class="main-container">
+        <div class="card">
+            <h2>Enki &  Xhuli 💍</h2>
+            
+            <!-- TABS CON 3 SEZIONI -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('dedica')">✍️ Dedikim</button>
+                <button class="tab-btn" onclick="switchTab('media')">📸 Foto/Video</button>
+                <button class="tab-btn" onclick="switchTab('gallery')">🔒 Galeria</button>
+            </div>
+
+            <!-- NOME DELL'AUTORE -->
+            <div class="form-group" id="author-name-group">
+                <label for="author_name">Emri juaj:</label>
+                <input type="text" id="author_name" placeholder="Emrin">
+            </div>
+
+            <!-- SEKSIONI I DEDIKIMIT -->
+            <div id="section-dedica">
+                <div class="form-group">
+                    <label for="message">Dedikimi juaj:</label>
+                    <textarea id="message" rows="5" placeholder="Shkruani këtu urimet tuaja për çiftin..."></textarea>
+                </div>
+                <button class="submit-btn" id="sendBtn" onclick="sendData()">Dërgo ❤️</button>
+            </div>
+
+            <!-- SEKSIONI FOTO / VIDEO -->
+            <div id="section-media" style="display: none;">
+                <div class="form-group">
+                    <label>Kategoria:</label>
+                    
+                    <!-- GRIGLIA CATEGORIE (2 COLONNE) -->
+                    <div class="category-grid" id="categoryGrid">
+                        <div class="category-card" data-value="prima_del_matrimonio">💍 Përpara dasmës</div>
+                        <div class="category-card" data-value="attesa_sposi">⏳ Pritja e dasmorëve</div>
+                        <div class="category-card" data-value="sposi">👩‍❤️‍👨 Çifti</div>
+                        <div class="category-card" data-value="foto_invitati">🥳 Foto me të ftuarit</div>
+                        <div class="category-card" data-value="taglio_torta">🎂 Prerja e tortës</div>
+                        <div class="category-card" data-value="musica">🎵 Atmosfera</div>
+                        <div class="category-card selected" data-value="cazzate">🤪 Momente qesharake</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="media_file">Zgjidhni Foto ose Video:</label>
+                    <input type="file" id="media_file" accept="image/*,video/*">
+                </div>
+                <button class="submit-btn" id="sendBtnMedia" onclick="sendData()">Dërgo ❤️</button>
+            </div>
+
+            <!-- SEKSIONI I GALERISË (PROTETTO DA CODICE) -->
+            <div id="section-gallery" style="display: none;">
+                <div id="gallery-auth-box">
+                    <div class="form-group">
+                        <label for="access_code">Vendosni kodin e hyrjes:</label>
+                        <input type="text" id="access_code" placeholder="Shkruaj kodin këtu..." style="text-transform: uppercase;">
+                    </div>
+                    <button class="submit-btn" style="background: #111111;" onclick="unlockGallery()">Shiko Galerinë 🔑</button>
+                    <div id="galleryAuthStatus" style="margin-top: 10px; font-weight: bold;"></div>
+                </div>
+
+                <!-- CONTENUTO GALLERIA SBLOCCATO -->
+                <div id="gallery-content" style="display: none; margin-top: 10px;">
+                    <!-- Sotto-schede visibili solo agli Sposi -->
+                    <div id="spouse-subtabs" style="display: none; margin-bottom: 15px; gap: 10px;">
+                        <button class="tab-btn active" id="subtab-media-btn" onclick="switchSpouseSubtab('media')">📸 Foto & Video</button>
+                        <button class="tab-btn" id="subtab-notes-btn" onclick="switchSpouseSubtab('notes')">✉️ Dedikimet</button>
+                    </div>
+
+                    <!-- BARRA SUPERIORE GALLERIA CON PULSANTE POPUP FILTRO -->
+                    <div class="gallery-header-bar" id="gallery-header-bar">
+                        <span style="font-size: 13px; font-weight: bold; color: #555;" id="current-filter-label">🌟 Të gjitha</span>
+                        <button class="filter-popup-btn" onclick="openFilterModal()">
+                            <span>⚙️ Shto Filtër</span>
+                        </button>
+                    </div>
+
+                    <!-- GRIGLIA FOTO / VIDEO -->
+                    <div id="gallery-media-container" class="gallery-grid"></div>
+
+                    <!-- LISTA DEDICHE (SOLO SPOSI) -->
+                    <div id="gallery-notes-container" style="display: none; text-align: left;"></div>
+                </div>
+            </div>
+
+            <div id="statusMessage"></div>
+        </div>
+    </div>
+
+    <!-- POP-UP MODAL PER FILTRARE LE CATEGORIE IN GALLERIA -->
+    <div class="modal-overlay" id="filterModal">
+        <div class="modal-box">
+            <button class="modal-close-btn" onclick="closeFilterModal()">✖</button>
+            <div class="modal-title">Zgjidh Kategorinë 🎯</div>
+            <div class="category-grid" id="modalCategoryGrid" style="max-height: 320px; overflow-y: auto;">
+                <!-- I quadrati del filtro vengono generati da JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
