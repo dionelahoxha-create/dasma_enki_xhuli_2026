@@ -261,7 +261,7 @@ function closeFilterModal() {
     modal.classList.remove('open');
 }
 
-// --- RENDER FOTO/VIDEO NEI QUADRATINI CON BYPASS NGROK ---
+// --- RENDER FOTO/VIDEO CON BYPASS NGROK ANCHE PER I VIDEO ---
 function renderMediaGrid(items) {
     const container = document.getElementById('gallery-media-container');
     container.innerHTML = '';
@@ -283,39 +283,45 @@ function renderMediaGrid(items) {
         const isVideo = item.filepath.match(/\.(mp4|webm|ogg|mov)$/i);
 
         if (isVideo) {
+            const videoId = 'vid_' + Math.random().toString(36).substr(2, 9);
             div.innerHTML = `
-                <video src="${item.filepath}" controls style="width: 100%; height: 100%; object-fit: cover; display: block;"></video>
-                <div class="gallery-author" style="position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.7); color: white; padding: 6px; font-size: 11px;">👤 ${item.author_name}</div>
+                <video id="${videoId}" controls playsinline preload="metadata" style="width: 100%; height: 100%; object-fit: cover; display: block;"></video>
+                <div class="gallery-author" style="position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.7); color: white; padding: 6px; font-size: 11px; pointer-events: none;">👤 ${item.author_name}</div>
             `;
+            // Scarica e sblocca il video tramite fetch con bypass Ngrok
+            fetchMediaWithNgrokBypass(item.filepath, videoId, 'video');
         } else {
             const imgId = 'img_' + Math.random().toString(36).substr(2, 9);
             div.innerHTML = `
                 <img id="${imgId}" alt="Foto" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer;" onclick="openImagePopupFromElement('${imgId}', '${item.author_name}')">
                 <div class="gallery-author" style="position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.7); color: white; padding: 6px; font-size: 11px; pointer-events: none;">👤 ${item.author_name}</div>
             `;
-            
-            // Scarica l'immagine aggirando il blocco di Ngrok tramite codice fetch
-            fetchImageWithNgrokBypass(item.filepath, imgId);
+            // Scarica e sblocca l'immagine tramite fetch con bypass Ngrok
+            fetchMediaWithNgrokBypass(item.filepath, imgId, 'image');
         }
         container.appendChild(div);
     });
 }
 
-// Funzione che scarica l'immagine con l'header di sblocco di Ngrok
-async function fetchImageWithNgrokBypass(url, imgId) {
+// Funzione universale per scaricare immagini o video scavalcando il blocco di Ngrok
+async function fetchMediaWithNgrokBypass(url, elementId, type) {
     try {
         const response = await fetch(url, {
             headers: { 'ngrok-skip-browser-warning': 'true' }
         });
         const blob = await response.blob();
         const objectUrl = URL.createObjectURL(blob);
-        const imgElement = document.getElementById(imgId);
-        if (imgElement) {
-            imgElement.src = objectUrl;
-            imgElement.dataset.blobUrl = objectUrl;
+        const element = document.getElementById(elementId);
+        
+        if (element) {
+            element.src = objectUrl;
+            element.dataset.blobUrl = objectUrl;
+            if (type === 'video') {
+                element.load(); // Forza il player a ricaricarsi col nuovo blob sbloccato
+            }
         }
     } catch (e) {
-        console.error("Gabim gjatë ngarkimit të fotos:", e);
+        console.error("Gabim gjatë ngarkimit të medias:", e);
     }
 }
 
