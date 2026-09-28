@@ -147,7 +147,7 @@ async function sendData() {
         const response = await fetch(BACKEND_URL, {
             method: 'POST',
             headers: { 
-                'ngrok-skip-browser-warning': 'true' // Aggiornato per evitare il blocco di Ngrok in modo pulito
+                'ngrok-skip-browser-warning': 'true' 
             },
             body: formData
         });
@@ -261,7 +261,7 @@ function closeFilterModal() {
     modal.classList.remove('open');
 }
 
-// Render Foto/Video
+// --- RENDER FOTO/VIDEO NEI QUADRATINI (CORRETTO E PULITO) ---
 function renderMediaGrid(items) {
     const container = document.getElementById('gallery-media-container');
     container.innerHTML = '';
@@ -274,24 +274,44 @@ function renderMediaGrid(items) {
     items.forEach(item => {
         const div = document.createElement('div');
         div.className = 'gallery-item';
+        div.style.position = 'relative';
+        div.style.overflow = 'hidden';
+        div.style.borderRadius = '12px';
+        div.style.background = '#000';
+        div.style.minHeight = '150px';
 
         const isVideo = item.filepath.match(/\.(mp4|webm|ogg|mov)$/i);
 
         if (isVideo) {
             div.innerHTML = `
-                <video src="${item.filepath}" controls></video>
-                <div class="gallery-author">👤 ${item.author_name}</div>
+                <video src="${item.filepath}" controls style="width: 100%; height: 100%; object-fit: cover; display: block;"></video>
+                <div class="gallery-author" style="position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.7); color: white; padding: 6px; font-size: 11px;">👤 ${item.author_name}</div>
             `;
         } else {
             div.innerHTML = `
-                <a href="${item.filepath}" target="_blank">
-                    <img src="${item.filepath}" alt="Foto" loading="lazy">
-                </a>
-                <div class="gallery-author">👤 ${item.author_name}</div>
+                <img src="${item.filepath}" alt="Foto" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer;" onclick="openImagePopup('${item.filepath}', '${item.author_name}')">
+                <div class="gallery-author" style="position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.7); color: white; padding: 6px; font-size: 11px; pointer-events: none;">👤 ${item.author_name}</div>
             `;
         }
         container.appendChild(div);
     });
+}
+
+// Funzione popup per ingrandire la foto al tocco senza uscire dal sito
+function openImagePopup(url, author) {
+    let modal = document.getElementById('image-popup-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'image-popup-modal';
+        modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; cursor:pointer; padding: 20px;';
+        modal.onclick = () => modal.style.display = 'none';
+        document.body.appendChild(modal);
+    }
+    modal.innerHTML = `
+        <img src="${url}" style="max-width: 100%; max-height: 80vh; border-radius: 8px; object-fit: contain; box-shadow: 0 4px 20px rgba(0,0,0,0.8);">
+        <p style="color: white; margin-top: 15px; font-size: 16px; font-weight: bold;">👤 ${author}</p>
+    `;
+    modal.style.display = 'flex';
 }
 
 // Render Dediche (Sposi)
