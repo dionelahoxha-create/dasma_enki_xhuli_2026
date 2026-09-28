@@ -219,7 +219,7 @@ async function unlockGallery() {
     }
 }
 
-// --- APERTURA E CHIUSURA MODAL POPUP ---
+// --- APERTURA E CHIUSURA MODAL POPUP FILTRI ---
 function openFilterModal() {
     const modal = document.getElementById('filterModal');
     const grid = document.getElementById('modalCategoryGrid');
@@ -261,7 +261,7 @@ function closeFilterModal() {
     modal.classList.remove('open');
 }
 
-// --- RENDER FOTO/VIDEO NEI QUADRATINI (CORRETTO E PULITO) ---
+// --- RENDER FOTO/VIDEO NEI QUADRATINI CON BYPASS NGROK ---
 function renderMediaGrid(items) {
     const container = document.getElementById('gallery-media-container');
     container.innerHTML = '';
@@ -288,16 +288,44 @@ function renderMediaGrid(items) {
                 <div class="gallery-author" style="position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.7); color: white; padding: 6px; font-size: 11px;">👤 ${item.author_name}</div>
             `;
         } else {
+            const imgId = 'img_' + Math.random().toString(36).substr(2, 9);
             div.innerHTML = `
-                <img src="${item.filepath}" alt="Foto" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer;" onclick="openImagePopup('${item.filepath}', '${item.author_name}')">
+                <img id="${imgId}" alt="Foto" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer;" onclick="openImagePopupFromElement('${imgId}', '${item.author_name}')">
                 <div class="gallery-author" style="position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.7); color: white; padding: 6px; font-size: 11px; pointer-events: none;">👤 ${item.author_name}</div>
             `;
+            
+            // Scarica l'immagine aggirando il blocco di Ngrok tramite codice fetch
+            fetchImageWithNgrokBypass(item.filepath, imgId);
         }
         container.appendChild(div);
     });
 }
 
-// Funzione popup per ingrandire la foto al tocco senza uscire dal sito
+// Funzione che scarica l'immagine con l'header di sblocco di Ngrok
+async function fetchImageWithNgrokBypass(url, imgId) {
+    try {
+        const response = await fetch(url, {
+            headers: { 'ngrok-skip-browser-warning': 'true' }
+        });
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const imgElement = document.getElementById(imgId);
+        if (imgElement) {
+            imgElement.src = objectUrl;
+            imgElement.dataset.blobUrl = objectUrl;
+        }
+    } catch (e) {
+        console.error("Gabim gjatë ngarkimit të fotos:", e);
+    }
+}
+
+// Funzione popup per ingrandire la foto cliccata
+function openImagePopupFromElement(imgId, author) {
+    const imgElement = document.getElementById(imgId);
+    const url = imgElement ? (imgElement.dataset.blobUrl || imgElement.src) : '';
+    openImagePopup(url, author);
+}
+
 function openImagePopup(url, author) {
     let modal = document.getElementById('image-popup-modal');
     if (!modal) {
